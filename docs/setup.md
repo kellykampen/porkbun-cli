@@ -27,9 +27,24 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Install in development mode
-pip install -e .
+# Install a regular package that keeps working if the checkout moves
+python -m pip install .
+
+# Verify the installed launcher without making API calls
+porkbun --help
 ```
+
+Contributors can use `python -m pip install -e .` for an editable install.
+Editable installs depend on the checkout's absolute path. After moving a checkout,
+reinstall it with the same Python interpreter that owns the launcher:
+
+```bash
+/path/to/python -m pip install --force-reinstall --no-deps /new/path/to/porkbun-cli
+```
+
+This regular install copies the package into that interpreter's site-packages and
+regenerates `porkbun` to call `porkbun.cli:cli`. Add `-e` if you still need editable
+development. Reinstalling the package does not change saved API credentials.
 
 To deactivate the virtual environment when you're done:
 
@@ -224,4 +239,4 @@ When a domain is not opted in to API access, the error message is not very helpf
 1. Look for other async functions in the codebase that might have similar issues
 2. Enhance table formatting for DNS record output
 3. Add colorized output for error messages
-4. Consider adding batch operations for DNS records 
+4. Consider adding batch operations for DNS records
