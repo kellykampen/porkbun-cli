@@ -50,7 +50,7 @@ setup(
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "porkbun=porkbun.cli:main",
+            "porkbun=porkbun.cli:cli",
         ],
     },
 )
