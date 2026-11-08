@@ -7,8 +7,13 @@ import sys
 
 
 def test_api_request_does_not_log_credentials(tmp_path):
-    env = {key: value for key, value in os.environ.items() if not key.startswith("PORKBUN_")}
+    """Capture default DEBUG logs without inherited credentials or Loguru settings."""
+    env = {
+        key: value for key, value in os.environ.items()
+        if not key.startswith(("PORKBUN_", "LOGURU_"))
+    }
     env["HOME"] = str(tmp_path)
+    env["USERPROFILE"] = str(tmp_path)
     env["PYTHONPATH"] = str(Path(__file__).resolve().parents[2])
     result = subprocess.run(
         [sys.executable, "-c", """

@@ -9,6 +9,7 @@ import venv
 
 
 def test_installed_launcher(tmp_path):
+    """Build and install a wheel, then run its launcher without the build source."""
     source = Path(__file__).resolve().parents[2]
     project = tmp_path / "source"
     shutil.copytree(
@@ -23,9 +24,11 @@ def test_installed_launcher(tmp_path):
         if key not in {"PYTHONPATH", "PYTHONHOME"} and not key.startswith("PORKBUN_")
     }
     env["HOME"] = str(tmp_path / "home")
+    env["USERPROFILE"] = env["HOME"]
     Path(env["HOME"]).mkdir()
 
     def run(*args):
+        """Run an isolated subprocess and report its output if it fails."""
         result = subprocess.run(
             args, cwd=tmp_path, env=env, capture_output=True, text=True, timeout=120,
         )
@@ -34,16 +37,16 @@ def test_installed_launcher(tmp_path):
 
     wheels = tmp_path / "wheels"
     run(
-        sys.executable, "-m", "pip", "wheel", "--no-deps", "--no-build-isolation",
+        sys.executable, "-m", "pip", "wheel", "--no-deps",
         "--wheel-dir", str(wheels), str(project),
     )
-    # Reuse runtime dependencies, but install this project's wheel into its own venv.
+    # Install the wheel and its declared dependencies into a clean environment.
     environment = tmp_path / "venv"
-    venv.EnvBuilder(with_pip=True, system_site_packages=True).create(environment)
+    venv.EnvBuilder(with_pip=True).create(environment)
     scripts = environment / ("Scripts" if os.name == "nt" else "bin")
     python = scripts / ("python.exe" if os.name == "nt" else "python")
     run(
-        str(python), "-m", "pip", "install", "--no-deps", "--ignore-installed",
+        str(python), "-m", "pip", "install",
         str(next(wheels.glob("*.whl"))),
     )
     # Removing the build source also catches accidental editable/source dependencies.
